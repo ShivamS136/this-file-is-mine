@@ -2,7 +2,7 @@
 <html lang="en" dir="ltr">
 	<head>
 		<meta charset="utf-8">
-		<link rel="icon" type="image/png" sizes="64x64" href="/assets/img/favicon1.ico">
+		<link rel="icon" type="image/png" sizes="64x64" href="/assets/img/full-logo-50x50.png">
 		<title>This file is mine</title>
 	</head>
 	<body>

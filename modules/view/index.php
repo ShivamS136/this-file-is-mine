@@ -2,12 +2,11 @@
 <html lang="en" dir="ltr">
 	<head>
 		<meta charset="utf-8">
-		<link rel="icon" type="image/png" sizes="64x64" href="/assets/img/full-logo-50x50.png">
 		<title>This file is mine</title>
 	</head>
 	<body>
 		<header>
-			<img src="/assets/img/full-logo-50x50.png" alt="TFIM">
+			<img src="/assets/img/logo-32x32.png" alt="TFIM">
 			<span class="webTitle">This File Is Mine</span>
 		</header>
 		<section>

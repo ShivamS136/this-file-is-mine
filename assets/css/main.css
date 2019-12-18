@@ -1,18 +1,23 @@
 /* Bootstrap Overriden */
-header{padding-top:3px;padding-bottom:3px;box-shadow:0 1px 0 rgba(12,13,14,0.1),0 1px 6px rgba(60,65,70,0.1);border-top:3px solid #62c8fa;background-color:#fafafb;position:fixed;top:0;left:0;width:100%}
+header{padding:5px;box-shadow:0 1px 0 rgba(12,13,14,0.1),0 1px 6px rgba(60,65,70,0.1);border-top:3px solid #62c8fa;background-color:#fafafb;position:fixed;top:0;left:0;width:100%}
 header>div.row{height:40px;line-height:40px}
 section{background-color:#fcfcfc;padding:5px;margin-top:50px}
 footer{height:30px}
-nav{display:inline-block;float:right}
-nav>ul{float:right;margin:0;padding:0;display:inline-block}
+nav{display:inline-block;}
+nav>ul{margin:0;padding:0;display:inline-block}
 nav>ul>li{display:inline-block}
 .bg-primary{background:linear-gradient(45deg,#337ab7,#52b5ff)}
 .btn-primary{background-color:#4993d6}
 .btn-primary:hover{background-color:#3e7dbc}
-.container{width:100%}
-.form-control{padding:5px}
 .help-block{display:none}
-
+/* Flex CSS */
+.flex-container{
+	display: flex;
+	flex-flow: row nowrap;
+	justify-content: space-between;
+	align-items: center;
+	align-content: center;
+}
 /* Custom CSS */
-.webTitle{font-size:25px;vertical-align:middle;letter-spacing:1px;font-family:monospace;padding-left:10px}
-header img{height:32px}
+.webTitle{font-size:24px;vertical-align:middle;font-family:monospace;padding-left:10px}
+header img{height:30px}

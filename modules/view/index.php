@@ -7,10 +7,11 @@
 	</head>
 	<body>
 		<header class="flex-container">
-			<div>
+			<logo>
 				<img src="assets/img/logo-32x32.png" alt="TFIM">
-				<span class="webTitle">This File Is Mine</span>
-			</div>
+				<span class="webTitle full">This File Is Mine</span>
+				<span class="webTitle short">TFIM</span>
+			</logo>
 			<nav>
 				<ul>
 					<li>

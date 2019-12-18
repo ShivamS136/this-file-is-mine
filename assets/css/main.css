@@ -1,23 +1,22 @@
 /* Bootstrap Overriden */
-header{padding:5px;box-shadow:0 1px 0 rgba(12,13,14,0.1),0 1px 6px rgba(60,65,70,0.1);border-top:3px solid #62c8fa;background-color:#fafafb;position:fixed;top:0;left:0;width:100%}
+header{padding:5px;box-shadow:0 1px 0 rgba(12,13,14,0.1),0 1px 6px rgba(60,65,70,0.1);border-top:3px solid #62c8fa;background-color:#fafafb;position:fixed;top:0;left:0;width:100%;display:flex;flex-flow:row nowrap;justify-content:space-between;align-items:center;align-content:center}
 header>div.row{height:40px;line-height:40px}
-section{background-color:#fcfcfc;padding:5px;margin-top:50px}
+section{background-color:#fcfcfc;padding:5px}
 footer{height:30px}
-nav{display:inline-block;}
+nav{display:inline-block}
 nav>ul{margin:0;padding:0;display:inline-block}
 nav>ul>li{display:inline-block}
+body{display:flex;flex-direction:column;padding-top:50px}
 .bg-primary{background:linear-gradient(45deg,#337ab7,#52b5ff)}
 .btn-primary{background-color:#4993d6}
 .btn-primary:hover{background-color:#3e7dbc}
 .help-block{display:none}
-/* Flex CSS */
-.flex-container{
-	display: flex;
-	flex-flow: row nowrap;
-	justify-content: space-between;
-	align-items: center;
-	align-content: center;
-}
+
 /* Custom CSS */
 .webTitle{font-size:24px;vertical-align:middle;font-family:monospace;padding-left:10px}
-header img{height:30px}
+.webTitle.short{display:none}
+logo img{height:30px}
+@media only screen and (max-width:450px) {
+	.webTitle.short{display:inline-block}
+	.webTitle.full{display:none}
+}

@@ -13,7 +13,7 @@
 			</nav>
 			<div class="footer-msg">
 				<div class="text-center margin-auto">Made with 
-					<span class="text-shadow-white glyphicon glyphicon-heart" aria-hidden="true"></span>
+					<span style="color:#d00000" class="text-shadow-white glyphicon glyphicon-heart" aria-hidden="true"></span>
 					in India, <em>By a proud rural boy of Distt. Bijnor</em>
 				</div>
 			</div>

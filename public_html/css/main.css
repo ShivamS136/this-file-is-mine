@@ -27,7 +27,8 @@ footer li {
     list-style: none;
     padding: 3px 0px;
 }
-footer li a{color: #848d95;}
+footer li a{color:#848d95;}
+footer li a:hover{color:#bbc0c4;text-decoration:none;}
 
 /* Custom CSS */
 .webTitle{font-size:24px;vertical-align:middle;font-family:monospace;padding-left:10px}

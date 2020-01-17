@@ -1,0 +1,6 @@
+{
+	"password"	: "db_password",
+	"createdAt"	: "17-Jan-2020 17:33:30",
+	"updatedAt"	: "17-Jan-2020 17:33:30",
+	"tables"	: ["user_detail"]
+}

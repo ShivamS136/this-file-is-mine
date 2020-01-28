@@ -1,5 +1,4 @@
 {
-	"password"	: "keepmeprotected",
 	"columns"	: ["user_id", "name", "password", "user_level"]
 	"data"	: {
 		"1"	: {

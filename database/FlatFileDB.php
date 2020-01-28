@@ -6,12 +6,10 @@
 class FlatFileDB 
 {
 	public $db_name="";
-	public $db_cred = array();
-	private $db_root = "";
 	public $error=array();
-	function __construct($db_name="", $password="", $createMode=true)
+	function __construct($db_name="", $createMode=true)
 	{
-		$this->db_root = DOCUMENT_ROOT."/database/db/";
+		defined("FFDB_ROOT") or define("FFDB_ROOT", realpath(dirname(__FILE__,1)));
 		$this->setError(NULL);
 		$isValid = $this->validateDbName($db_name);
 		if(!$isValid){
@@ -25,23 +23,38 @@ class FlatFileDB
 	private function validateDbName($db_name):bool
 	{
 		$this->setError(NULL);
-		if(!$db_name && preg_match('/[^a-z_\-0-9]/i', $db_name)){
+		if(!$db_name || preg_match('/[^a-z_\-0-9]/i', $db_name)){
 			$this->setError("Invalid Database Name, Only Alphanumeric, _ and - are allowed",1);
 			return false;
 		}
 		return true;
 	}
+
+	public function table($mode='')
+	{
+		// code...
+	}
 	
-	// public function removeDb($db_name):bool
-	// {
-	// 	$this->setError(NULL);
-	// 	if(is_dir($this->db_root.$db_name)){
-	// 		rmdir();
-	// 	}
-	// 	else{
-	// 
-	// 	}
-	// }
+	private function delDir($dir) {
+		$files = array_diff(scandir($dir), array('.','..'));
+		foreach ($files as $file) {
+			(is_dir("$dir/$file")) ? delDir("$dir/$file") : unlink("$dir/$file");
+		}
+		return rmdir($dir);
+	}
+	
+	public function removeDb($db_name):bool
+	{
+		$this->setError(NULL);
+		if(is_dir(FFDB_ROOT."/db/$db_name")){
+			if(!$this->delDir(FFDB_ROOT."/db/$db_name")){
+				$this->setError("Unable to delete the database",4);
+			}
+		}
+		else{
+			$this->setError("No such Database exists",3);
+		}
+	}
 	
 	private function setError($err="", $code=-1):void
 	{
@@ -54,26 +67,27 @@ class FlatFileDB
 		}
 	}
 	
-	private function connectDB($db_name="", $password="", $createMode=true):bool
+	private function connectDB($db_name="", $createMode=true):bool
 	{
 		$this->setError(NULL);
-		if(is_dir($this->db_root.$db_name)){
-			$cred = file_get_contents($this->db_root.$db_name."/cred.json");
-			$this->db_cred = json_decode($cred);
+		if(is_dir(FFDB_ROOT."/db/$db_name")){
+			$this->db_name = $db_name;
 			return true;
 		}
 		else if($createMode){
-			if(mkdir($this->db_root.$db_name, 0777, true)){
-				$handle = fopen($this->db_root.$db_name."/cred.json", "w+");
+			if(mkdir(FFDB_ROOT."/db/$db_name", 0777, true)){
+				$handle = fopen(FFDB_ROOT."/db/$db_name/manifest.json", "w+");
 				$cred = new stdClass();
-				$cred->password = $password;
 				$cred->createdAt = date("d-M-Y H:i:s");
 				$cred->updatedAt = date("d-M-Y H:i:s");
+				$cred->tables = array();
+				$cred->tablesLength = 0;
 				fwrite($handle, json_encode($cred, JSON_PRETTY_PRINT));
 				fclose($handle);
-				$this->db_cred = $cred;
+				$this->db_name = $db_name;
 				return true;
 			}
+			$this->setError("Unable to create new DB",2);
 			return false;
 		}
 		return false;

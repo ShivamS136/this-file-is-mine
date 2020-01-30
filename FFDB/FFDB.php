@@ -50,7 +50,7 @@ class FFDB
 				$this->setError("A table with same name already exists");
 				return false;
 			}
-			$columnDetailArr = new stdClass();
+			$columnDetailArr = array();
 			foreach ($columnArr as $colName => $colArr) {
 				$colDatatype = "string";
 				$colConstraint = "";
@@ -79,6 +79,7 @@ class FFDB
 					$colName = $colArr;
 				}
 				$colFinal = array(
+					"name"	=> $colName,
 					"type"	=> $colDatatype
 				);
 				if($colConstraint !== ""){
@@ -90,7 +91,7 @@ class FFDB
 				if($colDefault !== ""){
 					$colFinal["default"] = $colDefault;
 				}
-				$columnDetailArr->$colName = $colFinal;
+				$columnDetailArr[] = $colFinal;
 			}
 			$tableObj = new stdClass();
 			$tableObj->data = [];

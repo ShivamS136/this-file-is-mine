@@ -23,13 +23,14 @@ class FFDB
 	
 	public function db()
 	{
+		$this->setError(NULL);
 		$args = func_get_args();
-		$action = isset($args[0]) ? $args[0] : "";
+		$action = isset($args[0]) ? strtolower($args[0]) : "";
 		if($action=="desc"){
 			$manifest = $this->readJsonFile(FFDB_ROOT."/db/$this->db_name/manifest.json");
 			return $manifest;
 		}
-		elseif ($action=="remove") {
+		elseif ($action=="delete") {
 			$hardDelete = isset($args[1]) ? $args[1] : false;
 			return $this->removeDb($hardDelete);
 		}
@@ -37,8 +38,75 @@ class FFDB
 	
 	public function table()
 	{
+		$this->setError(NULL);
 		$args = func_get_args();
-		$action = isset($args[0]) ? $args[0] : "";
+		$action = isset($args[0]) ? strtolower($args[0]) : "";
+		if($action == "create"){
+			$tableName = isset($args[1]) ? strtolower($args[1]) : "";
+			$columnArr = isset($args[2]) ? $args[2] : array();
+			// Check if a table already exists with same name
+			$dbManifest = $this->readJsonFile(FFDB_ROOT."/db/$this->db_name/manifest.json");
+			if($tableName=="" || in_array($tableName, $dbManifest->tables) || file_exists(FFDB_ROOT."/db/$this->db_name/$tableName.json")){
+				$this->setError("A table with same name already exists");
+				return false;
+			}
+			$columnDetailArr = new stdClass();
+			foreach ($columnArr as $colName => $colArr) {
+				$colDatatype = "string";
+				$colConstraint = "";
+				$colAutoincr = false;
+				$colDefault = "";
+				if(is_array($colArr)){
+					$colArr = array_change_key_case($colArr,"CASE_LOWER");
+					$colDatatype = isset($colArr["type"]) ? strtolower($colArr["type"]) : "string";
+					if(in_array($colConstraint, array("string", "number", "bool"))){
+						$colDatatype = "string";
+						$this->setError("Invalid Column Datatype hence converted into string");
+					}
+					$colConstraint = isset($colArr["constraint"]) ? strtolower($colArr["constraint"]) : "";
+					if(in_array($colConstraint, array("primary key", "unique key", "not null"))){
+						$this->setError("Invalid Column Datatype hence converted into string");
+						$colConstraint = "";
+					}
+					$colAutoincr = isset($colArr["autoincr"]) && $colArr["autoincr"] ? true : false;
+					if($colDatatype != "number" && $colAutoincr==true){
+						$colAutoincr = false;
+						$this->setError("Only Number type columns can be Auto Incremented");
+					}
+					$colDefault = isset($colArr["default"]) ? strtolower($colArr["default"]) : "";
+				}
+				else{
+					$colName = $colArr;
+				}
+				$colFinal = array(
+					"type"	=> $colDatatype
+				);
+				if($colConstraint !== ""){
+					$colFinal["constraint"] = $colConstraint;
+				}
+				if($colAutoincr !== false){
+					$colFinal["autoincr"] = $colAutoincr;
+				}
+				if($colDefault !== ""){
+					$colFinal["default"] = $colDefault;
+				}
+				$columnDetailArr->$colName = $colFinal;
+			}
+			$tableObj = new stdClass();
+			$tableObj->data = [];
+			$tableObj->manifest = new stdClass();
+			$tableObj->manifest->columns = $columnDetailArr;
+			$tableObj->manifest->no_of_rows = 0;
+			$tableObj->manifest->no_of_cols = count($columnDetailArr);
+			$tableObj->manifest->createdAt = date("d-M-Y H:i:s");
+			$tableObj->manifest->updatedAt = date("d-M-Y H:i:s");
+			if($this->writeJsonFile(FFDB_ROOT."/db/$this->db_name/$tableName.json", $tableObj)){
+				$dbManifest->tables[] = $tableName;
+				$dbManifest->tablesLength++;
+				$dbManifest->updatedAt = date("d-M-Y H:i:s");
+				$this->writeJsonFile(FFDB_ROOT."/db/$this->db_name/manifest.json", $dbManifest);
+			}
+		}
 	}
 	
 	private function validateDbName($db_name):bool
@@ -118,7 +186,6 @@ class FFDB
 
 	private function readJsonFile($path='')
 	{
-		$this->setError(NULL);
 		$file_content = file_get_contents($path);
 		if($file_content){
 			$json_err_arr = array(
@@ -152,8 +219,7 @@ class FFDB
 	
 	public function writeJsonFile($path='', $dataObj):bool
 	{
-		$this->setError(NULL);
-		$handle = fopen($path,"w+");
+		$handle = fopen($path,"w");
 		if($handle){
 			if(!fwrite($handle, json_encode($dataObj, JSON_PRETTY_PRINT))){
 				$this->setError("Unable to write file: $path");

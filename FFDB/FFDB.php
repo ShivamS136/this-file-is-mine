@@ -73,6 +73,8 @@ class FFDB
 		return true;
 	}
 	
+	
+	
 	/*
 	Actions:
 		- EXISTS
@@ -265,7 +267,7 @@ class FFDB
 				}
 			}
 			else{
-				$manifest = $this->db("desc")
+				$manifest = $this->db("desc");
 				if($manifest){
 					$manifest->updatedAt = date("d-M-Y H:i:s");
 					$this->writeJsonFile("$db/manifest.json", $manifest);

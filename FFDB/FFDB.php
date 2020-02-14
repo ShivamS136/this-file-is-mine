@@ -1,7 +1,7 @@
 <?php
 
 /**
- *    Flat File database written in JSON
+ *    Flat File database written for JSON File DB
  */
 class FFDB 
 {
@@ -12,7 +12,7 @@ class FFDB
 	{
 		defined("FFDB_ROOT") or define("FFDB_ROOT", realpath(dirname(__FILE__,1)));
 		$this->setError(NULL);
-		$isValid = $this->validateDbName($db_name);
+		$isValid = $this->validateName($db_name);
 		if(!$isValid){
 			return false;
 		}
@@ -21,96 +21,201 @@ class FFDB
 		}
 	}
 	
+	/*
+	Actions:
+		- EXISTS
+		- DESC
+		- DROP
+	 */
 	public function db()
 	{
 		$this->setError(NULL);
 		$args = func_get_args();
 		$action = isset($args[0]) ? strtolower($args[0]) : "";
 		if($action=="desc"){
-			$manifest = $this->readJsonFile(FFDB_ROOT."/db/$this->db_name/manifest.json");
-			return $manifest;
+			if(!empty($this->db_name)){
+				if(!file_exists(FFDB_ROOT."/db/$this->db_name/manifest.json")){
+					$this->setError("A DB with this name doesn't exist");
+					return false;
+				}
+				else{
+					$dbManifest = $this->readJsonFile(FFDB_ROOT."/db/$this->db_name/manifest.json");
+					return $dbManifest;
+				}
+			}
+			else{
+				$this->setError("DB name can not be empty");
+				return false;
+			}
 		}
-		elseif ($action=="delete") {
+		else if($action == "exists"){
+			if(!file_exists(FFDB_ROOT."/db/$this->db_name/manifest.json")){
+				return false;
+			}
+			else{
+				return true;
+			}
+		}
+		else if ($action == "drop") {
 			$hardDelete = isset($args[1]) ? $args[1] : false;
-			return $this->removeDb($hardDelete);
+			if($this->db("exists")){
+				return $this->dropDb($hardDelete);
+			}
+			else{
+				$this->setError("A DB with this name doesn't exist");
+				return false;
+			}
 		}
+		else {
+			$this->setError("Invalid action given");
+			return false;
+		}
+		return true;
 	}
 	
+	/*
+	Actions:
+		- EXISTS
+		- DESC
+		- CREATE
+	 */
 	public function table()
 	{
 		$this->setError(NULL);
 		$args = func_get_args();
 		$action = isset($args[0]) ? strtolower($args[0]) : "";
-		if($action == "create"){
+		if($action == "exists"){
+			$tableName = isset($args[1]) ? strtolower($args[1]) : "";
+			if($this->db("exists")){
+				if($tableName==""){
+					$this->setError("Table name can not be empty");
+					return false;
+				}
+				else if(!file_exists(FFDB_ROOT."/db/$this->db_name/$tableName.json")){
+					return false;
+				}
+				else{
+					return true;
+				}
+			}
+			else{
+				$this->setError("A DB with this name doesn't exist");
+				return false;
+			}
+		}
+		else if($action == "create"){
 			$tableName = isset($args[1]) ? strtolower($args[1]) : "";
 			$columnArr = isset($args[2]) ? $args[2] : array();
 			// Check if a table already exists with same name
-			$dbManifest = $this->readJsonFile(FFDB_ROOT."/db/$this->db_name/manifest.json");
-			if($tableName=="" || in_array($tableName, $dbManifest->tables) || file_exists(FFDB_ROOT."/db/$this->db_name/$tableName.json")){
-				$this->setError("A table with same name already exists");
+			$dbManifest = $this->db("desc");
+			if(!$dbManifest){
+				$this->setError("Unable to create table as DB is not found");
 				return false;
 			}
-			$columnDetailArr = array();
-			foreach ($columnArr as $colName => $colArr) {
-				$colDatatype = "string";
-				$colConstraint = "";
-				$colAutoincr = false;
-				$colDefault = "";
-				if(is_array($colArr)){
-					$colArr = array_change_key_case($colArr,"CASE_LOWER");
-					$colDatatype = isset($colArr["type"]) ? strtolower($colArr["type"]) : "string";
-					if(in_array($colConstraint, array("string", "number", "bool"))){
-						$colDatatype = "string";
-						$this->setError("Invalid Column Datatype hence converted into string");
+			else{
+				if($tableName==""){
+					$this->setError("Table name can not be empty");
+					return false;
+				}
+				else if(in_array($tableName, $dbManifest->tables) || file_exists(FFDB_ROOT."/db/$this->db_name/$tableName.json")){
+					$this->setError("A table with same name already exists");
+					return false;
+				}
+				$columnDetailArr = array();
+				foreach ($columnArr as $colName => $colArr) {
+					$colDatatype = "string";
+					$colConstraint = "";
+					$colAutoincr = false;
+					$colDefault = "";
+					if(is_array($colArr)){
+						$colArr = array_change_key_case($colArr,"CASE_LOWER");
+						$colDatatype = isset($colArr["type"]) ? strtolower($colArr["type"]) : "string";
+						if(in_array($colConstraint, array("string", "number", "bool"))){
+							$colDatatype = "string";
+							$this->setError("Invalid Column Datatype hence converted into string");
+						}
+						$colConstraint = isset($colArr["constraint"]) ? strtolower($colArr["constraint"]) : "";
+						if(in_array($colConstraint, array("primary key", "unique key", "not null"))){
+							$this->setError("Invalid Column Datatype hence converted into string");
+							$colConstraint = "";
+						}
+						$colAutoincr = isset($colArr["autoincr"]) && $colArr["autoincr"] ? true : false;
+						if($colDatatype != "number" && $colAutoincr==true){
+							$colAutoincr = false;
+							$this->setError("Only Number type columns can be Auto Incremented");
+						}
+						$colDefault = isset($colArr["default"]) ? strtolower($colArr["default"]) : "";
 					}
-					$colConstraint = isset($colArr["constraint"]) ? strtolower($colArr["constraint"]) : "";
-					if(in_array($colConstraint, array("primary key", "unique key", "not null"))){
-						$this->setError("Invalid Column Datatype hence converted into string");
-						$colConstraint = "";
+					else{
+						$colName = $colArr;
 					}
-					$colAutoincr = isset($colArr["autoincr"]) && $colArr["autoincr"] ? true : false;
-					if($colDatatype != "number" && $colAutoincr==true){
-						$colAutoincr = false;
-						$this->setError("Only Number type columns can be Auto Incremented");
+					$colFinal = array(
+						"name"	=> $colName,
+						"type"	=> $colDatatype
+					);
+					if($colConstraint !== ""){
+						$colFinal["constraint"] = $colConstraint;
 					}
-					$colDefault = isset($colArr["default"]) ? strtolower($colArr["default"]) : "";
+					if($colAutoincr !== false){
+						$colFinal["autoincr"] = $colAutoincr;
+					}
+					if($colDefault !== ""){
+						$colFinal["default"] = $colDefault;
+					}
+					$columnDetailArr[] = $colFinal;
 				}
-				else{
-					$colName = $colArr;
+				$tableObj = new stdClass();
+				$tableObj->data = [];
+				$tableObj->manifest = new stdClass();
+				$tableObj->manifest->columns = $columnDetailArr;
+				$tableObj->manifest->rowCount = 0;
+				$tableObj->manifest->colCount = count($columnDetailArr);
+				$tableObj->manifest->createdAt = date("d-M-Y H:i:s");
+				$tableObj->manifest->updatedAt = date("d-M-Y H:i:s");
+				if($this->writeJsonFile(FFDB_ROOT."/db/$this->db_name/$tableName.json", $tableObj)){
+					$dbManifest->tables[] = $tableName;
+					$dbManifest->tablesLength++;
+					$dbManifest->updatedAt = date("d-M-Y H:i:s");
+					$this->writeJsonFile(FFDB_ROOT."/db/$this->db_name/manifest.json", $dbManifest);
 				}
-				$colFinal = array(
-					"name"	=> $colName,
-					"type"	=> $colDatatype
-				);
-				if($colConstraint !== ""){
-					$colFinal["constraint"] = $colConstraint;
-				}
-				if($colAutoincr !== false){
-					$colFinal["autoincr"] = $colAutoincr;
-				}
-				if($colDefault !== ""){
-					$colFinal["default"] = $colDefault;
-				}
-				$columnDetailArr[] = $colFinal;
-			}
-			$tableObj = new stdClass();
-			$tableObj->data = [];
-			$tableObj->manifest = new stdClass();
-			$tableObj->manifest->columns = $columnDetailArr;
-			$tableObj->manifest->no_of_rows = 0;
-			$tableObj->manifest->no_of_cols = count($columnDetailArr);
-			$tableObj->manifest->createdAt = date("d-M-Y H:i:s");
-			$tableObj->manifest->updatedAt = date("d-M-Y H:i:s");
-			if($this->writeJsonFile(FFDB_ROOT."/db/$this->db_name/$tableName.json", $tableObj)){
-				$dbManifest->tables[] = $tableName;
-				$dbManifest->tablesLength++;
-				$dbManifest->updatedAt = date("d-M-Y H:i:s");
-				$this->writeJsonFile(FFDB_ROOT."/db/$this->db_name/manifest.json", $dbManifest);
 			}
 		}
+		else if($action == "desc"){
+			$tableName = isset($args[1]) ? strtolower($args[1]) : "";
+			if(!empty($tableName)){
+				$dbManifest = $this->db("desc");
+				if(!$dbManifest){
+					$this->setError("Unable to describe table as DB is not found");
+					return false;
+				}
+				else{
+					if(!in_array($tableName, $dbManifest->tables)){
+						$this->setError("A table with this name doesn't exist in the manifest.");
+						return false;
+					}
+					else if(!file_exists(FFDB_ROOT."/db/$this->db_name/$tableName.json")){
+						$this->setError("A table with this name doesn't exist in database.");
+						return false;
+					}
+					else{
+						$tableObj = $this->readJsonFile(FFDB_ROOT."/db/$this->db_name/$tableName.json");
+						return $tableObj->manifest;
+					}
+				}
+			}
+			else{
+				$this->setError("Table name can not be empty");
+				return false;
+			}
+		}
+		else {
+			$this->setError("Invalid action given");
+			return false;
+		}
+		return true;
 	}
 	
-	private function validateDbName($db_name):bool
+	private function validateName($db_name):bool
 	{
 		$this->setError(NULL);
 		if(!$db_name || preg_match('/[^a-z_\-0-9]/i', $db_name)){
@@ -147,12 +252,12 @@ class FFDB
 		return false;
 	}
 	
-	public function removeDb($hardDelete=false):bool
+	public function dropDb($hardDelete=false):bool
 	{
 		$this->setError(NULL);
 		$db = FFDB_ROOT."/db/$this->db_name";
 		$delDb = FFDB_ROOT."/deletedDb/$this->db_name";
-		if(is_dir($db)){
+		if($this->db("exists")){
 			if($hardDelete){
 				if(!$this->delDir($db)){
 					$this->setError("Unable to delete the database");
@@ -160,7 +265,7 @@ class FFDB
 				}
 			}
 			else{
-				$manifest = $this->readJsonFile("$db/manifest.json");
+				$manifest = $this->db("desc")
 				if($manifest){
 					$manifest->updatedAt = date("d-M-Y H:i:s");
 					$this->writeJsonFile("$db/manifest.json", $manifest);

@@ -12,6 +12,7 @@ class FFDB
 	{
 		defined("FFDB_ROOT") or define("FFDB_ROOT", realpath(dirname(__FILE__,1)));
 		$this->setError(NULL);
+		$db_name =strtolowwer($db_name);
 		$isValid = $this->validateName($db_name);
 		if(!$isValid){
 			return false;
@@ -52,27 +53,23 @@ class FFDB
 	private function dbDrop($hardDelete=false):bool
 	{
 		if($this->dbExists()){
-			$db = FFDB_ROOT."/db/$this->db_name";
-			$delDb = FFDB_ROOT."/deletedDb/$this->db_name";
+			$dbDir = FFDB_ROOT."/db/$this->db_name";
+			$delDbDir = FFDB_ROOT."/deletedDb/$this->db_name";
 			if($hardDelete){
-				if(!$this->delDir($db)){
+				if(!$this->delDir($dbDir)){
 					$this->setError("Unable to delete the database");
 					return false;
 				}
 			}
 			else{
-				$manifest = $this->dbDesc();
-				if($manifest){
-					$manifest->updatedAt = date("d-M-Y H:i:s");
-					$this->writeJsonFile("$db/manifest.json", $manifest);
-				}
-				if(is_dir($delDb)){
+				$this->updateDbManifest();
+				if(is_dir($delDbDir)){
 					$this->setError("A deleted database with same DB name already exits");
-					if(!$this->delDir($delDb)){
+					if(!$this->delDir($delDbDir)){
 						$this->setError("Unable to delete the existing deleted database");
 					}
 				}
-				if(!rename($db, $delDb)){
+				if(!rename($dbDir, $delDbDir)){
 					$this->setError("Unable to move database to deleted databases");
 					return false;
 				}
@@ -118,6 +115,7 @@ class FFDB
 		- EXISTS
 		- DESC
 		- CREATE
+		- DROP
 	 */
 	public function table()
 	{
@@ -137,6 +135,11 @@ class FFDB
 			$tableName = isset($args[1]) ? strtolower($args[1]) : "";
 			return $this->tabelDesc($tableName);
 		}
+		else if($action == "drop"){
+			$tableName = isset($args[1]) ? strtolower($args[1]) : "";
+			$hardDelete = isset($args[2]) && $args[2]!=false ? true : false;
+			return $this->tabelDrop($tableName, $hardDelete);
+		}
 		else {
 			$this->setError("Invalid action given");
 			return false;
@@ -144,7 +147,64 @@ class FFDB
 		return true;
 	}
 	
-	private function tableDesc($tableName=""){
+	private function tableDrop($tableName="", $hardDelete=false):bool
+	{
+		if($this->dbExists()){
+			$tableDir = FFDB_ROOT."/db/$this->db_name/$tableName.json";
+			$delTableDir = FFDB_ROOT."/db/$this->db_name/deletedTable/$tableName.json";
+			if($hardDelete){
+				if(!unlink($tableDir)){
+					$this->setError("Unable to delete the table");
+					return false;
+				}
+			}
+			else{
+				if(file_exists($delTableDir)){
+					$this->setError("A deleted table with same table name already exits");
+					if(!unlink($delTableDir)){
+						$this->setError("Unable to delete the existing deleted table");
+					}
+					else{
+						$this->updateDbManifest();
+					}
+				}
+				$this->updateTableManifest($tableName);
+				if(!rename($tableDir, $delTableDir)){
+					$this->setError("Unable to move table to deleted tables");
+					return false;
+				}
+			}
+			return true;
+		}
+		else{
+			$this->setError("DB doesn't exist");
+			return false;
+		}
+	}
+	
+	private function updateDbManifest($manifest=array()){
+		if(empty($manifest)){
+			$manifest = $this->dbDesc();
+		}
+		if($manifest){
+			$manifest->updatedAt = date("d-M-Y H:i:s");
+			$this->writeJsonFile(FFDB_ROOT."/db/$this->db_name/manifest.json", $manifest);
+		}
+	}
+	
+	private function updateTableManifest($tableName="", $tableObj=array()){
+		if(empty($tableObj)){
+			$tableObj = $this->tableDesc($tableName, true);
+		}
+		if($tableObj){
+			$tableObj->manifest->updatedAt = date("d-M-Y H:i:s");
+			$this->writeJsonFile(FFDB_ROOT."/db/$this->db_name/$tableName.json", $tableObj);
+			$this->updateDbManifest();
+		}
+	}
+	
+	private function tableDesc($tableName="", $fullFile=false)
+	{
 		$dbManifest = $this->dbDesc();
 		if(!$dbManifest){
 			$this->setError("Unable to describe table as DB is not found");
@@ -157,6 +217,9 @@ class FFDB
 			}
 			else{
 				$tableObj = $this->readJsonFile(FFDB_ROOT."/db/$this->db_name/$tableName.json");
+				if($fullFile){
+					return $tableObj;
+				}
 				return $tableObj->manifest;
 			}
 		}
@@ -229,8 +292,7 @@ class FFDB
 			if($this->writeJsonFile(FFDB_ROOT."/db/$this->db_name/$tableName.json", $tableObj)){
 				$dbManifest->tables[] = $tableName;
 				$dbManifest->tablesLength++;
-				$dbManifest->updatedAt = date("d-M-Y H:i:s");
-				$this->writeJsonFile(FFDB_ROOT."/db/$this->db_name/manifest.json", $dbManifest);
+				$this->updateDbManifest($dbManifest);
 			}
 			return true;
 		}

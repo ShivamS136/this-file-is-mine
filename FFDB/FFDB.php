@@ -44,7 +44,7 @@ class FFDB
 			return $this->dbDrop($hardDelete);
 		}
 		else {
-			$this->setError("Invalid action given");
+			$this->setError("Invalid action given", __LINE__);
 			return false;
 		}
 		return true;
@@ -57,27 +57,27 @@ class FFDB
 			$delDbDir = FFDB_ROOT."/deletedDb/$this->db_name";
 			if($hardDelete){
 				if(!$this->delDir($dbDir)){
-					$this->setError("Unable to delete the database");
+					$this->setError("Unable to delete the database", __LINE__);
 					return false;
 				}
 			}
 			else{
 				$this->updateDbManifest();
 				if(is_dir($delDbDir)){
-					$this->setError("A deleted database with same DB name already exits");
+					$this->setError("A deleted database with same DB name already exits", __LINE__);
 					if(!$this->delDir($delDbDir)){
-						$this->setError("Unable to delete the existing deleted database");
+						$this->setError("Unable to delete the existing deleted database", __LINE__);
 					}
 				}
 				if(!rename($dbDir, $delDbDir)){
-					$this->setError("Unable to move database to deleted databases");
+					$this->setError("Unable to move database to deleted databases", __LINE__);
 					return false;
 				}
 			}
 			return true;
 		}
 		else{
-			$this->setError("A DB with this name doesn't exist");
+			$this->setError("A DB with this name doesn't exist", __LINE__);
 			return false;
 		}
 	}
@@ -96,7 +96,7 @@ class FFDB
 	{
 		if(!empty($this->db_name)){
 			if(!file_exists(FFDB_ROOT."/db/$this->db_name/manifest.json")){
-				$this->setError("A DB with this name doesn't exist");
+				$this->setError("A DB with this name doesn't exist", __LINE__);
 				return false;
 			}
 			else{
@@ -105,7 +105,7 @@ class FFDB
 			}
 		}
 		else{
-			$this->setError("DB name can not be empty");
+			$this->setError("DB name can not be empty", __LINE__);
 			return false;
 		}
 	}
@@ -141,7 +141,7 @@ class FFDB
 			return $this->tabelDrop($tableName, $hardDelete);
 		}
 		else {
-			$this->setError("Invalid action given");
+			$this->setError("Invalid action given", __LINE__);
 			return false;
 		}
 		return true;
@@ -154,15 +154,15 @@ class FFDB
 			$delTableDir = FFDB_ROOT."/db/$this->db_name/deletedTable/$tableName.json";
 			if($hardDelete){
 				if(!unlink($tableDir)){
-					$this->setError("Unable to delete the table");
+					$this->setError("Unable to delete the table", __LINE__);
 					return false;
 				}
 			}
 			else{
 				if(file_exists($delTableDir)){
-					$this->setError("A deleted table with same table name already exits");
+					$this->setError("A deleted table with same table name already exits", __LINE__);
 					if(!unlink($delTableDir)){
-						$this->setError("Unable to delete the existing deleted table");
+						$this->setError("Unable to delete the existing deleted table", __LINE__);
 					}
 					else{
 						$this->updateDbManifest();
@@ -170,14 +170,14 @@ class FFDB
 				}
 				$this->updateTableManifest($tableName);
 				if(!rename($tableDir, $delTableDir)){
-					$this->setError("Unable to move table to deleted tables");
+					$this->setError("Unable to move table to deleted tables", __LINE__);
 					return false;
 				}
 			}
 			return true;
 		}
 		else{
-			$this->setError("DB doesn't exist");
+			$this->setError("DB doesn't exist", __LINE__);
 			return false;
 		}
 	}
@@ -207,12 +207,12 @@ class FFDB
 	{
 		$dbManifest = $this->dbDesc();
 		if(!$dbManifest){
-			$this->setError("Unable to describe table as DB is not found");
+			$this->setError("Unable to describe table as DB is not found", __LINE__);
 			return false;
 		}
 		else{
 			if(!$this->tableExists($tableName)){
-				$this->setError("Table not found");
+				$this->setError("Table not found", __LINE__);
 				return false;
 			}
 			else{
@@ -230,12 +230,12 @@ class FFDB
 		// Check if a table already exists with same name
 		$dbManifest = $this->dbDesc();
 		if(!$dbManifest){
-			$this->setError("Unable to create table as DB is not found");
+			$this->setError("Unable to create table as DB is not found", __LINE__);
 			return false;
 		}
 		else{
 			if($this->tableExists($tableName)){
-				$this->setError("A table with same name already exists");
+				$this->setError("A table with same name already exists", __LINE__);
 				return false;
 			}
 			$columnDetailArr = array();
@@ -249,17 +249,17 @@ class FFDB
 					$colDatatype = isset($colArr["type"]) ? strtolower($colArr["type"]) : "string";
 					if(in_array($colConstraint, array("string", "number", "bool"))){
 						$colDatatype = "string";
-						$this->setError("Invalid Column Datatype hence converted into string");
+						$this->setError("Invalid Column Datatype hence converted into string", __LINE__);
 					}
 					$colConstraint = isset($colArr["constraint"]) ? strtolower($colArr["constraint"]) : "";
 					if(in_array($colConstraint, array("primary key", "unique key", "not null"))){
-						$this->setError("Invalid Column Datatype hence converted into string");
+						$this->setError("Invalid Column Datatype hence converted into string", __LINE__);
 						$colConstraint = "";
 					}
 					$colAutoincr = isset($colArr["autoincr"]) && $colArr["autoincr"] ? true : false;
 					if($colDatatype != "number" && $colAutoincr==true){
 						$colAutoincr = false;
-						$this->setError("Only Number type columns can be Auto Incremented");
+						$this->setError("Only Number type columns can be Auto Incremented", __LINE__);
 					}
 					$colDefault = isset($colArr["default"]) ? strtolower($colArr["default"]) : "";
 				}
@@ -303,15 +303,15 @@ class FFDB
 		$dbManifest = $this->dbDesc();
 		if($dbManifest){
 			if($tableName==""){
-				$this->setError("Table name can not be empty");
+				$this->setError("Table name can not be empty", __LINE__);
 				return false;
 			}
 			else if(!in_array($tableName, $dbManifest->tables)){
-				$this->setError("A table with this name doesn't exist in the manifest.");
+				$this->setError("A table with this name doesn't exist in the manifest.", __LINE__);
 				return false;
 			}
 			else if(!file_exists(FFDB_ROOT."/db/$this->db_name/$tableName.json")){
-				$this->setError("A table with this name doesn't exist in the database");
+				$this->setError("A table with this name doesn't exist in the database", __LINE__);
 				return false;
 			}
 			else{
@@ -319,7 +319,7 @@ class FFDB
 			}
 		}
 		else{
-			$this->setError("DB doesn't exist");
+			$this->setError("DB doesn't exist", __LINE__);
 			return false;
 		}
 		return false;
@@ -329,7 +329,7 @@ class FFDB
 	{
 		$this->setError(NULL);
 		if(!$db_name || preg_match('/[^a-z_\-0-9]/i', $db_name)){
-			$this->setError("Invalid Database Name, Only Alphanumeric, _ and - are allowed");
+			$this->setError("Invalid Database Name. Only Alphanumeric, _ and - are allowed", __LINE__);
 			return false;
 		}
 		return true;
@@ -350,13 +350,13 @@ class FFDB
 				$cred->tables = array();
 				$cred->tablesLength = 0;
 				if(!$this->writeJsonFile(FFDB_ROOT."/db/$db_name/manifest.json", $cred)){
-					$this->setError("Unable to create manifest file for the new DB");
+					$this->setError("Unable to create manifest file for the new DB", __LINE__);
 					return false;
 				};
 				$this->db_name = $db_name;
 				return true;
 			}
-			$this->setError("Unable to create new DB");
+			$this->setError("Unable to create new DB", __LINE__);
 			return false;
 		}
 		return false;
@@ -382,7 +382,7 @@ class FFDB
 			$file_content = json_decode($file_content);
 			$json_error = json_last_error();
 			if($json_error){
-				$this->setError("Error while JSON decoding file: $path, Error: ".$json_err_arr[$json_error]);
+				$this->setError("Error while JSON decoding file: $path. Error: ".$json_err_arr[$json_error], __LINE__);
 				return false;
 			}
 			else{
@@ -390,7 +390,7 @@ class FFDB
 			}
 		}
 		else{
-			$this->setError("Unable to open file: $path");
+			$this->setError("Unable to open file: $path", __LINE__);
 			return false;
 		}
 	}
@@ -400,14 +400,14 @@ class FFDB
 		$handle = fopen($path,"w");
 		if($handle){
 			if(!fwrite($handle, json_encode($dataObj, JSON_PRETTY_PRINT))){
-				$this->setError("Unable to write file: $path");
+				$this->setError("Unable to write file: $path", __LINE__);
 				return false;
 			}
 			fclose($handle);
 			return true;
 		}
 		else{
-			$this->setError("Unable to open file: $path");
+			$this->setError("Unable to open file: $path", __LINE__);
 			return false;
 		}
 	}
@@ -421,20 +421,20 @@ class FFDB
 		return rmdir($dir);
 	}
 	
-	private function setError($err="", $code=-1):void
+	private function setError($err="", $line=-1):void
 	{
-		if(!$err){
+		if($err===NULL){
 			$this->error = array();
 		}
 		else{
 			if(empty($this->error)){
 				$this->error["trace"] = array();
 			}
-			$this->error["name"] = $err;
-			$this->error["code"] = $code;
+			$this->error["message"] = $err;
+			$this->error["line"] = $line;
 			$this->error["trace"][] = array(
-				"name"	=> $err,
-				"code"	=> $code,
+				"message"	=> $err,
+				"line"		=> $line,
 			);
 		}
 	}

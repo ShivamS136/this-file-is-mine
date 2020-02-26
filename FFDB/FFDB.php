@@ -12,7 +12,7 @@ class FFDB
 	{
 		defined("FFDB_ROOT") or define("FFDB_ROOT", realpath(dirname(__FILE__,1)));
 		$this->setError(NULL);
-		$db_name =strtolowwer($db_name);
+		$db_name =strtolower($db_name);
 		$isValid = $this->validateName($db_name);
 		if(!$isValid){
 			return false;
@@ -67,6 +67,12 @@ class FFDB
 					$this->setError("A deleted database with same DB name already exits", __LINE__);
 					if(!$this->delDir($delDbDir)){
 						$this->setError("Unable to delete the existing deleted database", __LINE__);
+					}
+				}
+				if(!is_dir(FFDB_ROOT."/deletedDb")){
+					if(!mkdir(FFDB_ROOT."/deletedDb", 0777, true)){
+						$this->setError("Unable to create directory for deleted databases", __LINE__);
+						return false;
 					}
 				}
 				if(!rename($dbDir, $delDbDir)){
@@ -133,12 +139,12 @@ class FFDB
 		}
 		else if($action == "desc"){
 			$tableName = isset($args[1]) ? strtolower($args[1]) : "";
-			return $this->tabelDesc($tableName);
+			return $this->tableDesc($tableName);
 		}
 		else if($action == "drop"){
 			$tableName = isset($args[1]) ? strtolower($args[1]) : "";
 			$hardDelete = isset($args[2]) && $args[2]!=false ? true : false;
-			return $this->tabelDrop($tableName, $hardDelete);
+			return $this->tableDrop($tableName, $hardDelete);
 		}
 		else {
 			$this->setError("Invalid action given", __LINE__);
@@ -159,6 +165,10 @@ class FFDB
 				}
 			}
 			else{
+				if(!$this->tableExists($tableName)){
+					$this->setError("Table to be deleted doesn't exist", __LINE__);
+					return false;
+				}
 				if(file_exists($delTableDir)){
 					$this->setError("A deleted table with same table name already exits", __LINE__);
 					if(!unlink($delTableDir)){
@@ -169,6 +179,12 @@ class FFDB
 					}
 				}
 				$this->updateTableManifest($tableName);
+				if(!is_dir(FFDB_ROOT."/db/$this->db_name/deletedTable")){
+					if(!mkdir(FFDB_ROOT."/db/$this->db_name/deletedTable", 0777, true)){
+						$this->setError("Unable to create directory for deleted tables", __LINE__);
+						return false;
+					}
+				}
 				if(!rename($tableDir, $delTableDir)){
 					$this->setError("Unable to move table to deleted tables", __LINE__);
 					return false;
@@ -239,29 +255,51 @@ class FFDB
 				return false;
 			}
 			$columnDetailArr = array();
+			$hasPk = false;
 			foreach ($columnArr as $colName => $colArr) {
 				$colDatatype = "string";
 				$colConstraint = "";
 				$colAutoincr = false;
 				$colDefault = "";
 				if(is_array($colArr)){
-					$colArr = array_change_key_case($colArr,"CASE_LOWER");
+					$colArr = array_change_key_case($colArr,CASE_LOWER);
 					$colDatatype = isset($colArr["type"]) ? strtolower($colArr["type"]) : "string";
-					if(in_array($colConstraint, array("string", "number", "bool"))){
+					if(!in_array($colDatatype, array("string", "number", "bool"))){
+						$this->setError("Invalid Column Datatype($colDatatype) hence converted into string: $colName", __LINE__);
 						$colDatatype = "string";
-						$this->setError("Invalid Column Datatype hence converted into string", __LINE__);
 					}
+					
 					$colConstraint = isset($colArr["constraint"]) ? strtolower($colArr["constraint"]) : "";
-					if(in_array($colConstraint, array("primary key", "unique key", "not null"))){
-						$this->setError("Invalid Column Datatype hence converted into string", __LINE__);
+					if(!in_array($colConstraint, array("primary key", "unique key", "not null"))){
+						$this->setError("Invalid Column Constraint($colConstraint) hence removed: $colName", __LINE__);
 						$colConstraint = "";
 					}
+					else if($hasPk && $colConstraint=="primary key"){
+						$this->setError("Only one column can be Primary Key: $colName", __LINE__);
+						$colConstraint = "";
+					}
+					else if(!$hasPk && $colConstraint=="primary key"){
+						$hasPk = true;
+					}
+					
 					$colAutoincr = isset($colArr["autoincr"]) && $colArr["autoincr"] ? true : false;
 					if($colDatatype != "number" && $colAutoincr==true){
+						$this->setError("Only Number type columns can be Auto Incremented: $colName", __LINE__);
 						$colAutoincr = false;
-						$this->setError("Only Number type columns can be Auto Incremented", __LINE__);
 					}
+					
 					$colDefault = isset($colArr["default"]) ? strtolower($colArr["default"]) : "";
+					if(($colDatatype == "bool" && !in_array($colDefault, array(true, false, "true", "false"))) || ($colDatatype == "number" && !is_numeric($colDefault))){
+						$this->setError("Invalid default value '$colDefault' for the column '$colName'", __LINE__);
+						$colDefault = "";
+					}else{
+						if($colDatatype == "bool"){
+							$colDefault = boolval($colDefault);
+						}
+						else if($colDatatype == "number"){
+							$colDefault = floatval($colDefault);
+						}
+					}
 				}
 				else{
 					$colName = $colArr;
@@ -366,23 +404,10 @@ class FFDB
 	{
 		$file_content = file_get_contents($path);
 		if($file_content){
-			$json_err_arr = array(
-				JSON_ERROR_NONE => "No error has occurred", 
-				JSON_ERROR_DEPTH => "The maximum stack depth has been exceeded", 
-				JSON_ERROR_STATE_MISMATCH => "Invalid or malformed JSON", 
-				JSON_ERROR_CTRL_CHAR => "Control character error, possibly incorrectly encoded", 
-				JSON_ERROR_SYNTAX => "Syntax error", 
-				JSON_ERROR_UTF8 => "Malformed UTF-8 characters, possibly incorrectly encoded",
-				JSON_ERROR_RECURSION => "One or more recursive references in the value to be encoded",
-				JSON_ERROR_INF_OR_NAN => "One or more NAN or INF values in the value to be encoded",
-				JSON_ERROR_UNSUPPORTED_TYPE => "A value of a type that cannot be encoded was given",
-				JSON_ERROR_INVALID_PROPERTY_NAME => "A property name that cannot be encoded was given",
-				JSON_ERROR_UTF16 => "Malformed UTF-16 characters, possibly incorrectly encoded",
-			);
 			$file_content = json_decode($file_content);
 			$json_error = json_last_error();
 			if($json_error){
-				$this->setError("Error while JSON decoding file: $path. Error: ".$json_err_arr[$json_error], __LINE__);
+				$this->setError("Error while JSON decoding file: $path. Error: ".json_last_error_msg(), __LINE__);
 				return false;
 			}
 			else{
@@ -399,7 +424,7 @@ class FFDB
 	{
 		$handle = fopen($path,"w");
 		if($handle){
-			if(!fwrite($handle, json_encode($dataObj, JSON_PRETTY_PRINT))){
+			if(!fwrite($handle, json_encode($dataObj, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE))){
 				$this->setError("Unable to write file: $path", __LINE__);
 				return false;
 			}

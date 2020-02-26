@@ -155,7 +155,8 @@ class FFDB
 	
 	private function tableDrop($tableName="", $hardDelete=false):bool
 	{
-		if($this->dbExists()){
+		$dbManifest = $this->dbDesc();
+		if($dbManifest !== false){
 			$tableDir = FFDB_ROOT."/db/$this->db_name/$tableName.json";
 			$delTableDir = FFDB_ROOT."/db/$this->db_name/deletedTable/$tableName.json";
 			if($hardDelete){
@@ -190,6 +191,9 @@ class FFDB
 					return false;
 				}
 			}
+			$dbManifest->tables = array_values(array_diff($dbManifest->tables, [$tableName]));
+			$dbManifest->tablesLength--;
+			$this->updateDbManifest($dbManifest);
 			return true;
 		}
 		else{
@@ -200,6 +204,7 @@ class FFDB
 	
 	private function updateDbManifest($manifest=array()){
 		if(empty($manifest)){
+			$manifest->updatedAt = date("d-M-Y H:i:s");
 			$manifest = $this->dbDesc();
 		}
 		if($manifest){
@@ -210,6 +215,7 @@ class FFDB
 	
 	private function updateTableManifest($tableName="", $tableObj=array()){
 		if(empty($tableObj)){
+			$tableObj->manifest->updatedAt = date("d-M-Y H:i:s");
 			$tableObj = $this->tableDesc($tableName, true);
 		}
 		if($tableObj){

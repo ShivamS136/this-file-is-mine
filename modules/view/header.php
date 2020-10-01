@@ -4,23 +4,14 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<meta charset="utf-8">
 		<title>This File Is Mine</title>
+		<link rel="stylesheet" href="/public/css/bootstrap.min.css">
+		<link rel="stylesheet" href="/public/css/main.css">
+		<script src="public/js/jquery.min.js"></script>
+		<script src="public/js/bootstrap.bundle.min.js"></script>
+		<script src="public/js/main.js"></script>
 	</head>
 	<body>
-		<header class="flex-container">
-			<logo>
-				<img src="public_html/img/logo-32x32.png" alt="TFIM">
-				<span class="webTitle full">This File Is Mine</span>
-				<span class="webTitle short">TFIM</span>
-			</logo>
-			<nav>
-				<ul>
-					<li>
-						<button class="btn btn-default" type="button" name="signup">Sign Up</button>
-					</li>
-					<li>
-						<button class="btn btn-primary" type="button" name="login">Log In</button>
-					</li>
-				</ul>
-			</nav>
+		<header>
+			
 		</header>
 		<section>

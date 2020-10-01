@@ -1,6 +1,6 @@
-		</section>
-		<footer>
-			
-		</footer>
-	</body>
+	</section>
+	<footer>
+		
+	</footer>
+</body>
 </html>

@@ -23,11 +23,11 @@
 		public function actionIndex()
 		{
 			$action = isset($_POST["action"]) ? $_POST["action"] : "";
-			if($action)
+			if($action) // Ajax Requests
 			{
-				$this->IndexModel->testDB($action);
+
 			}
-			else {
+			else { // Page load
 				include("modules/view/index.php");
 			}
 		}

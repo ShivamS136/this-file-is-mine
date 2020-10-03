@@ -25,7 +25,11 @@
 			$action = isset($_POST["action"]) ? $_POST["action"] : "";
 			if($action) // Ajax Requests
 			{
-
+				if($action == "getFiles"){
+					$emp_id = isset($_POST["emp_id"])?$_POST["emp_id"]:56532;
+					$files = $this->IndexModel->getFiles($emp_id);
+					echo json_encode($files);
+				}
 			}
 			else { // Page load
 				include("modules/view/index.php");

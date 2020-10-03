@@ -3,25 +3,33 @@
 	require_once(DOCUMENT_ROOT."/modules/view/header.php");
 ?>
 	<div class="container-fluid p-3">
-		<div class="row py-2">
+		<div class="row m-0 py-3 bg-light mb-3">
 			<div class="col-12 col-md-3">
 				<div class="nav flex-column nav-pills" role="tablist" aria-orientation="vertical">
-					<a class="nav-link active" id="lock-files-tab" data-toggle="pill" href="#lock-files" role="tab" aria-controls="lock-files" aria-selected="true">Lock Files</a>
-					<a class="nav-link" id="release-files-tab" data-toggle="pill" href="#release-files" role="tab" aria-controls="release-files" aria-selected="false">Release Files</a>
-					<a class="nav-link" id="get-files-status-tab" data-toggle="pill" href="#get-files-status" role="tab" aria-controls="get-files-status" aria-selected="false">Get Files' Status</a> 
+					<a class="nav-link active" id="lockFilesTab" data-toggle="pill" href="#lockFiles" role="tab" aria-controls="lockFiles" aria-selected="true">Lock Files</a>
+					<a class="nav-link" id="releaseFilesTab" data-toggle="pill" href="#releaseFiles" role="tab" aria-controls="releaseFiles" aria-selected="false">Release Files</a>
+					<a class="nav-link" id="getFilesStatusTab" data-toggle="pill" href="#getFilesStatus" role="tab" aria-controls="getFilesStatus" aria-selected="false">Get Files' Status</a> 
 				</div>  
 			</div>
 			<div class="col-12 col-md-9">
 				<div class="tab-content">
-				<div class="tab-pane fade show active" id="lock-files" role="tabpanel" aria-labelledby="lock-files-tab">Lock Files</div>
-				<div class="tab-pane fade" id="release-files" role="tabpanel" aria-labelledby="release-files-tab">Release Files</div>
-				<div class="tab-pane fade" id="get-files-status" role="tabpanel" aria-labelledby="get-files-status-tab">Get Files' Status</div>
+				<div class="tab-pane fade show active" id="lockFiles" role="tabpanel" aria-labelledby="lockFilesTab">Lock Files</div>
+				<div class="tab-pane fade" id="releaseFiles" role="tabpanel" aria-labelledby="releaseFilesTab">Release Files</div>
+				<div class="tab-pane fade" id="getFilesStatus" role="tabpanel" aria-labelledby="getFilesStatusTab">Get Files' Status</div>
 				</div>
 			</div>
 		</div>
-		<div class="row py-2">
-			<div class="col-12 p-3">
-				
+		<div class="row m-0 bg-light mb-3">
+			<div class="col bg-dark text-light" id="fileSidebar">
+				<div class="loading d-none d-flex justify-content-center align-items-center">
+					<div class="spinner-border" role="status">
+						<span class="sr-only">Loading Files...</span>
+					</div>
+				</div>
+				<div class="fileExplorer"></div>
+			</div>
+			<div class="col" id="fileDetail">
+				a
 			</div>
 		</div>
 	</div>

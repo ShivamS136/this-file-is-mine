@@ -12,6 +12,12 @@
 </head>
 <body>
 	<header>
-		
+		<nav class="navbar navbar-light bg-light">
+			<a class="navbar-brand" href="#" style="font-family:consolas">
+				<img src="public/img/logo-50x50.png" width="30" height="30" class="d-inline-block align-top" alt="" loading="lazy">
+				<span class="d-none d-sm-inline">This File Is Mine</span>
+				<span class="d-inline d-sm-none">TFIM</span>
+			</a>
+		</nav>
 	</header>
 	<section>

@@ -13,7 +13,39 @@
 			</div>
 			<div class="col-12 col-md-9">
 				<div class="tab-content">
-				<div class="tab-pane fade show active" id="lockFiles" role="tabpanel" aria-labelledby="lockFilesTab">Lock Files</div>
+					<div id="formProject">
+						<div class="form-group row">
+							<label for="projects" class="col-sm-3 col-form-label text-right">Project:</label>
+							<div class="col-sm-9" id="projectsDiv" style="max-width:400px;">
+								<select class="custom-select" id="projects"></select>
+								<p class="msg text-muted d-none"></p>
+								<div class="loading d-none d-flex justify-content-center align-items-center">
+									<div class="spinner-border" role="status">
+										<span class="sr-only">Loading Projects...</span>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				<div class="tab-pane fade show active" id="lockFiles" role="tabpanel" aria-labelledby="lockFilesTab">
+					<div class="form-group row">
+						<label for="lockFilesList" class="col-sm-3 col-form-label text-right">List of files:</label>
+						<div class="col-sm-9" id="lockFilesListDiv" style="max-width:400px;">
+							<textarea id="lockFilesList" class="form-control" rows="3" data-gramm_editor="false" data-gramm="false" spellcheck="false"></textarea>
+							<p class="msg text-muted d-none"></p>
+							<div class="loading d-none justify-content-center align-items-center">
+								<div class="spinner-border" role="status">
+									<span class="sr-only">Locking Files...</span>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="form-group row justify-content-center">
+						<div class="col-3">
+							<button class="btn btn-outline-primary">Lock Files</button>
+						</div>
+					</div>
+				</div>
 				<div class="tab-pane fade" id="releaseFiles" role="tabpanel" aria-labelledby="releaseFilesTab">Release Files</div>
 				<div class="tab-pane fade" id="getFilesStatus" role="tabpanel" aria-labelledby="getFilesStatusTab">Get Files' Status</div>
 				</div>

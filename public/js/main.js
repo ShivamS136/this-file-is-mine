@@ -1,7 +1,34 @@
 $(function() {
 	init_split();
 	getFiles();
+	$("#lockFilesBtn").on('click', function(event) {
+		lockFiles();
+	});
 });
+
+function lockFiles() {
+	var proj = $("#projects").val() || "";
+	if(proj){
+		// var paths = [
+		//   'RootFolder/FolderA/FolderB/FileA.html',
+		//   'RootFolder/FolderA/FolderB/FileB.js',
+		//   'RootFolder/FolderA/FolderB/FolderC/FileA',
+		//   'RootFolder/FolderA/FolderB/FolderC/FileB'
+		// ]
+
+		// var obj = {}
+		// paths.forEach(function(path) {
+		//   path.split('/').reduce(function(r, e) {
+		//     return r[e] || (e.indexOf(".")==-1?(r[e] = {}):r[e]="")
+		//   }, obj)
+		// })
+
+		// console.log(obj)
+	}
+	else{
+		
+	}
+}
 
 function getFiles() {
 	$.ajax({
@@ -32,7 +59,7 @@ function getFiles() {
 			$("#projectsDiv .msg").html("No Project Found").show();
 		}
 
-		
+
 		// filesHtml("#fileSidebar", RES);
 		$("#fileSidebar .fileExplorer").html("Result is loaded in console");
 	})

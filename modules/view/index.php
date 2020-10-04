@@ -4,7 +4,7 @@
 ?>
 	<div class="container-fluid p-3">
 		<div class="row m-0 py-3 bg-light mb-3">
-			<div class="col-12 col-md-3">
+			<div class="col-12 col-md-3 border-right">
 				<div class="nav flex-column nav-pills" role="tablist" aria-orientation="vertical">
 					<a class="nav-link active" id="lockFilesTab" data-toggle="pill" href="#lockFiles" role="tab" aria-controls="lockFiles" aria-selected="true">Lock Files</a>
 					<a class="nav-link" id="releaseFilesTab" data-toggle="pill" href="#releaseFiles" role="tab" aria-controls="releaseFiles" aria-selected="false">Release Files</a>
@@ -19,7 +19,7 @@
 							<div class="col-sm-9" id="projectsDiv" style="max-width:400px;">
 								<select class="custom-select" id="projects"></select>
 								<p class="msg text-muted d-none"></p>
-								<div class="loading d-none d-flex justify-content-center align-items-center">
+								<div class="loading d-flex d-none justify-content-center align-items-center">
 									<div class="spinner-border" role="status">
 										<span class="sr-only">Loading Projects...</span>
 									</div>
@@ -33,16 +33,11 @@
 						<div class="col-sm-9" id="lockFilesListDiv" style="max-width:400px;">
 							<textarea id="lockFilesList" class="form-control" rows="3" data-gramm_editor="false" data-gramm="false" spellcheck="false"></textarea>
 							<p class="msg text-muted d-none"></p>
-							<div class="loading d-none justify-content-center align-items-center">
-								<div class="spinner-border" role="status">
-									<span class="sr-only">Locking Files...</span>
-								</div>
-							</div>
 						</div>
 					</div>
 					<div class="form-group row justify-content-center">
 						<div class="col-3">
-							<button class="btn btn-outline-primary">Lock Files</button>
+							<button class="btn btn-outline-primary" id="lockFilesBtn" data-toggle="modal" data-target="#lockFilesModal">Lock Files</button>
 						</div>
 					</div>
 				</div>
@@ -62,6 +57,31 @@
 			</div>
 			<div class="col" id="fileDetail">
 				a
+			</div>
+		</div>
+	</div>
+
+	<!-- Bootstrap Modals -->
+	<div class="modal fade" id="lockFilesModal" tabindex="-1" aria-labelledby="lockFilesModal" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">Lock Files</h5>
+					<!-- <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button> -->
+				</div>
+				<div class="modal-body">
+					<div class="loading d-flex d-none justify-content-center align-items-center">
+						<div class="spinner-border" role="status">
+							<span class="sr-only">Locking Files...</span>
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-outline-success" data-dismiss="modal">Continue Locking</button>
+					<button type="button" class="btn btn-outline-warning" data-dismiss="modal">Cancel Locking</button>
+				</div>
 			</div>
 		</div>
 	</div>
